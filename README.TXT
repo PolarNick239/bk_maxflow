@@ -1,3 +1,17 @@
+# Boykov/Kolmogorov MaxFlow Software 2.22 with lower memory consumption + back-ported fix from v3.04
+
+This is the modified version of Boykov/Kolmogorov solver 2.22 for max-flow min-cut problem:
+
+ - Lower memory consumption (~150 -> ~70 bytes per node) by using ```unsigned int``` instead of pointers (can easily be switched to ```size_t``` by ```node_id``` typedef)
+ - Number of edges from each node limited to ```MAX_ARCS_NUMBER``` (MAX_ARCS_NUMBER=4 tested - useful for Delaunay tetrahedralization, dynamic number of edges can be recovered)
+ - Back-ported fix from v3.04 for integer overflow: "changed types of node::TS and TIME from int to long (to prevent overflows for very large graphs). Thanks to Alexander Bersenev for the suggestion"
+
+Original site - http://pub.ist.ac.at/~vnk/software.html (An Experimental Comparison of Min-Cut/Max-Flow Algorithms for Energy Minimization in Computer Vision.)
+
+Site with commercial version - https://xip.uclb.com/i/software/maxflow_computervision.html
+
+# Original README.txt
+
 ###################################################################
 #                                                                 #
 #    MAXFLOW - software for computing mincut/maxflow in a graph   #

@@ -53,7 +53,7 @@ public:
 		SINK	= 1
 	} termtype; /* terminals */
 
-	typedef int node_id;
+	typedef unsigned int node_id;
 
 	/* interface functions */
 

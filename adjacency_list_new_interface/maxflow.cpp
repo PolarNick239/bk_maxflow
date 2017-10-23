@@ -125,7 +125,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 	/* 1. Finding bottleneck capacity */
 	/* 1a - the source tree */
 	bottleneck = middle_arc -> r_cap;
-	for (i=NODE_PTR(middle_arc->sister(this)->head); ; i=NODE_PTR(a->head))
+	for (i=NODE_PTR(middle_arc->from(this)); ; i=NODE_PTR(a->head))
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;
@@ -146,7 +146,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 	/* 2a - the source tree */
 	middle_arc -> sister(this) -> r_cap += bottleneck;
 	middle_arc -> r_cap -= bottleneck;
-	for (i=NODE_PTR(middle_arc->sister(this)->head); ; i=NODE_PTR(a->head))
+	for (i=NODE_PTR(middle_arc->from(this)); ; i=NODE_PTR(a->head))
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;

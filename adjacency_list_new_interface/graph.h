@@ -63,7 +63,7 @@ public:
 	/* Destructor */
 	~Graph();
 
-	/* Adds node(s) to the graph. By default, one node is added (num=1); then first call returns 0, second call returns 1, and so on. 
+	/* Adds node(s) to the graph. By default, one node is added (num=1); then first call returns 0, second call returns 1, and so on.
 	   If num>1, then several nodes are added, and node_id of the first one is returned. */
 	node_id add_node(int num = 1);
 
@@ -91,7 +91,7 @@ public:
 /***********************************************************************/
 /***********************************************************************/
 /***********************************************************************/
-	
+
 private:
 	/* internal variables and functions */
 
@@ -105,7 +105,7 @@ private:
 		arc_st			*parent;	/* node's parent */
 		node_st			*next;		/* pointer to the next active node
 									   (or to itself if it is the last node in the list) */
-		int				TS;			/* timestamp showing when DIST was computed */
+		long			TS;			/* timestamp showing when DIST was computed */
 		int				DIST;		/* distance to the terminal */
 		short			is_sink;	/* flag showing whether the node is in the source or in the sink tree */
 
@@ -145,7 +145,7 @@ private:
 
 	node				*queue_first[2], *queue_last[2];	/* list of active nodes */
 	nodeptr				*orphan_first, *orphan_last;		/* list of pointers to orphans */
-	int					TIME;								/* monotonically increasing global counter */
+	long				TIME;								/* monotonically increasing global counter */
 
 /***********************************************************************/
 

@@ -34,6 +34,11 @@
 #define ARC_BLOCK_SIZE 1024
 #define NODEPTR_BLOCK_SIZE 128
 
+#define MAX_ARCS_NUMBER 4
+
+#define NODE_PTR(node) ((node_st*) (nodes + node))
+#define NODE_ID(node) ((node_id) (node - nodes))
+
 // captype: type of edge capacities (excluding t-links)
 // tcaptype: type of t-links (edges between nodes and terminals)
 // flowtype: type of total flow
@@ -100,27 +105,48 @@ private:
 	/* node structure */
 	typedef struct node_st
 	{
-		arc_st			*first;		/* first outcoming arc */
-
 		arc_st			*parent;	/* node's parent */
 		node_st			*next;		/* pointer to the next active node
 									   (or to itself if it is the last node in the list) */
 		long			TS;			/* timestamp showing when DIST was computed */
 		int				DIST;		/* distance to the terminal */
-		short			is_sink;	/* flag showing whether the node is in the source or in the sink tree */
 
 		captype			tr_cap;		/* if tr_cap > 0 then tr_cap is residual capacity of the arc SOURCE->node
 									   otherwise         -tr_cap is residual capacity of the arc node->SINK */
+
+		arc_st			arcs[MAX_ARCS_NUMBER];
+		short			narcs;
+
+		short			is_sink;	/* flag showing whether the node is in the source or in the sink tree */
 	} node;
 
 	/* arc structure */
 	typedef struct arc_st
 	{
-		node_st			*head;		/* node the arc points to */
-		arc_st			*next;		/* next arc with the same originating node */
-		arc_st			*sister;	/* reverse arc */
+		node_id			head;		/* node the arc points to */
 
 		captype			r_cap;		/* residual capacity */
+
+		node_id			from(Graph<captype, tcaptype, flowtype> *graph) {
+			char* thiz = ((char*) this);
+			node_st *thiz_node =  (node_st*) (thiz - (thiz - (char*) graph->nodes) % sizeof(node_st));
+			return (node_id) (thiz_node - graph->nodes);
+		}
+
+		template <typename capt, typename tcapt, typename flowt>
+		arc_st			*sister(Graph<capt, tcapt, flowt> *graph) {    /* reverse arc */
+			node_id from_node = from(graph);
+
+			node_st &that_node = graph->nodes[head];
+
+			for (int i = 0; i < that_node.narcs; ++i) {
+				if (that_node.arcs[i].head == from_node) {
+					return that_node.arcs + i;
+				}
+			}
+
+			return NULL;
+		}
 	} arc;
 
 	/* 'pointer to node' structure */
@@ -132,7 +158,6 @@ private:
 
 	node_st*			nodes;
 	int				node_num, node_num_max;
-	Block<arc>			*arc_block;
 	DBlock<nodeptr>		*nodeptr_block;
 
 	void	(*error_function)(const char *);	/* this function is called if a error occurs,

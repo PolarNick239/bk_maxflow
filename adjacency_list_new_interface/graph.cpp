@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "graph.h"
 
 template <typename captype, typename tcaptype, typename flowtype>
@@ -10,7 +11,6 @@ template <typename captype, typename tcaptype, typename flowtype>
 {
 	error_function = err_function;
 	nodes = (node*) malloc(node_num_max*sizeof(node));
-	arc_block  = new Block<arc>(ARC_BLOCK_SIZE, error_function);
 	flow = 0;
 }
 
@@ -18,7 +18,6 @@ template <typename captype, typename tcaptype, typename flowtype>
 	Graph<captype, tcaptype, flowtype>::~Graph()
 {
 	free(nodes);
-	delete arc_block;
 }
 
 template <typename captype, typename tcaptype, typename flowtype>
@@ -44,17 +43,16 @@ template <typename captype, typename tcaptype, typename flowtype>
 	node* from = nodes + _from;
 	node* to = nodes + _to;
 
-	a = arc_block -> New(2);
-	a_rev = a + 1;
+	assert(from->narcs < MAX_ARCS_NUMBER);
+	assert(to->narcs < MAX_ARCS_NUMBER);
 
-	a -> sister = a_rev;
-	a_rev -> sister = a;
-	a -> next = from -> first;
-	from -> first = a;
-	a_rev -> next = ((node*)to) -> first;
-	to -> first = a_rev;
-	a -> head = to;
-	a_rev -> head = from;
+	a = from->arcs + from->narcs;
+	a_rev = to->arcs + to->narcs;
+	++from->narcs;
+	++to->narcs;
+
+	a -> head = NODE_ID(to);
+	a_rev -> head = NODE_ID(from);
 	a -> r_cap = cap;
 	a_rev -> r_cap = rev_cap;
 }

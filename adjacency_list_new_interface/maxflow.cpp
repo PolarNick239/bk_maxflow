@@ -125,15 +125,15 @@ template <typename captype, typename tcaptype, typename flowtype>
 	/* 1. Finding bottleneck capacity */
 	/* 1a - the source tree */
 	bottleneck = middle_arc -> r_cap;
-	for (i=middle_arc->sister->head; ; i=a->head)
+	for (i=NODE_PTR(middle_arc->sister(this)->head); ; i=NODE_PTR(a->head))
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;
-		if (bottleneck > a->sister->r_cap) bottleneck = a -> sister -> r_cap;
+		if (bottleneck > a->sister(this)->r_cap) bottleneck = a -> sister(this) -> r_cap;
 	}
 	if (bottleneck > i->tr_cap) bottleneck = i -> tr_cap;
 	/* 1b - the sink tree */
-	for (i=middle_arc->head; ; i=a->head)
+	for (i=NODE_PTR(middle_arc->head); ; i=NODE_PTR(a->head))
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;
@@ -144,15 +144,15 @@ template <typename captype, typename tcaptype, typename flowtype>
 
 	/* 2. Augmenting */
 	/* 2a - the source tree */
-	middle_arc -> sister -> r_cap += bottleneck;
+	middle_arc -> sister(this) -> r_cap += bottleneck;
 	middle_arc -> r_cap -= bottleneck;
-	for (i=middle_arc->sister->head; ; i=a->head)
+	for (i=NODE_PTR(middle_arc->sister(this)->head); ; i=NODE_PTR(a->head))
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;
 		a -> r_cap += bottleneck;
-		a -> sister -> r_cap -= bottleneck;
-		if (!a->sister->r_cap)
+		a -> sister(this) -> r_cap -= bottleneck;
+		if (!a->sister(this)->r_cap)
 		{
 			/* add i to the adoption list */
 			i -> parent = ORPHAN;
@@ -173,11 +173,11 @@ template <typename captype, typename tcaptype, typename flowtype>
 		orphan_first = np;
 	}
 	/* 2b - the sink tree */
-	for (i=middle_arc->head; ; i=a->head)
+	for (i=NODE_PTR(middle_arc->head); ; i=NODE_PTR(a->head))
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;
-		a -> sister -> r_cap += bottleneck;
+		a -> sister(this) -> r_cap += bottleneck;
 		a -> r_cap -= bottleneck;
 		if (!a->r_cap)
 		{
@@ -215,10 +215,13 @@ template <typename captype, typename tcaptype, typename flowtype>
 	int d, d_min = INFINITE_D;
 
 	/* trying to find a new parent */
-	for (a0=i->first; a0; a0=a0->next)
-	if (a0->sister->r_cap)
+
+	int ai;
+	for (ai = 0; ai < i->narcs; ++ai) {
+	a0 = i->arcs + ai;
+	if (a0->sister(this)->r_cap)
 	{
-		j = a0 -> head;
+		j = NODE_PTR(a0 -> head);
 		if (!j->is_sink && (a=j->parent))
 		{
 			/* checking the origin of j */
@@ -239,7 +242,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 					break;
 				}
 				if (a==ORPHAN) { d = INFINITE_D; break; }
-				j = a -> head;
+				j = NODE_PTR(a -> head);
 			}
 			if (d<INFINITE_D) /* j originates from the source - done */
 			{
@@ -249,13 +252,17 @@ template <typename captype, typename tcaptype, typename flowtype>
 					d_min = d;
 				}
 				/* set marks along the path */
-				for (j=a0->head; j->TS!=TIME; j=j->parent->head)
+				for (j=NODE_PTR(a0->head); j->TS!=TIME; j=NODE_PTR(j->parent->head))
 				{
 					j -> TS = TIME;
 					j -> DIST = d --;
 				}
 			}
 		}
+	}
+	}
+	if (ai == i->narcs) {
+		a0 = NULL;
 	}
 
 	if (i->parent = a0_min)
@@ -269,13 +276,16 @@ template <typename captype, typename tcaptype, typename flowtype>
 		i -> TS = 0;
 
 		/* process neighbors */
-		for (a0=i->first; a0; a0=a0->next)
+
+		int ai;
+		for (ai = 0; ai < i->narcs; ++ai) {
+		a0 = i->arcs + ai;
 		{
-			j = a0 -> head;
+			j = NODE_PTR(a0 -> head);
 			if (!j->is_sink && (a=j->parent))
 			{
-				if (a0->sister->r_cap) set_active(j);
-				if (a!=TERMINAL && a!=ORPHAN && a->head==i)
+				if (a0->sister(this)->r_cap) set_active(j);
+				if (a!=TERMINAL && a!=ORPHAN && NODE_PTR(a->head)==i)
 				{
 					/* add j to the adoption list */
 					j -> parent = ORPHAN;
@@ -287,6 +297,10 @@ template <typename captype, typename tcaptype, typename flowtype>
 					np -> next = NULL;
 				}
 			}
+		}
+		}
+		if (ai == i->narcs) {
+			a0 = NULL;
 		}
 	}
 }
@@ -300,10 +314,12 @@ template <typename captype, typename tcaptype, typename flowtype>
 	int d, d_min = INFINITE_D;
 
 	/* trying to find a new parent */
-	for (a0=i->first; a0; a0=a0->next)
+	int ai;
+	for (ai = 0; ai < i->narcs; ++ai) {
+	a0 = i->arcs + ai;
 	if (a0->r_cap)
 	{
-		j = a0 -> head;
+		j = NODE_PTR(a0 -> head);
 		if (j->is_sink && (a=j->parent))
 		{
 			/* checking the origin of j */
@@ -324,7 +340,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 					break;
 				}
 				if (a==ORPHAN) { d = INFINITE_D; break; }
-				j = a -> head;
+				j = NODE_PTR(a -> head);
 			}
 			if (d<INFINITE_D) /* j originates from the sink - done */
 			{
@@ -334,13 +350,17 @@ template <typename captype, typename tcaptype, typename flowtype>
 					d_min = d;
 				}
 				/* set marks along the path */
-				for (j=a0->head; j->TS!=TIME; j=j->parent->head)
+				for (j=NODE_PTR(a0->head); j->TS!=TIME; j=NODE_PTR(j->parent->head))
 				{
 					j -> TS = TIME;
 					j -> DIST = d --;
 				}
 			}
 		}
+	}
+	}
+	if (ai == i->narcs) {
+		a0 = NULL;
 	}
 
 	if (i->parent = a0_min)
@@ -354,13 +374,16 @@ template <typename captype, typename tcaptype, typename flowtype>
 		i -> TS = 0;
 
 		/* process neighbors */
-		for (a0=i->first; a0; a0=a0->next)
+
+		int ai;
+		for (ai = 0; ai < i->narcs; ++ai) {
+		a0 = i->arcs + ai;
 		{
-			j = a0 -> head;
+			j = NODE_PTR(a0 -> head);
 			if (j->is_sink && (a=j->parent))
 			{
 				if (a0->r_cap) set_active(j);
-				if (a!=TERMINAL && a!=ORPHAN && a->head==i)
+				if (a!=TERMINAL && a!=ORPHAN && NODE_PTR(a->head)==i)
 				{
 					/* add j to the adoption list */
 					j -> parent = ORPHAN;
@@ -372,6 +395,10 @@ template <typename captype, typename tcaptype, typename flowtype>
 					np -> next = NULL;
 				}
 			}
+		}
+		}
+		if (ai == i->narcs) {
+			a0 = NULL;
 		}
 	}
 }
@@ -404,14 +431,16 @@ template <typename captype, typename tcaptype, typename flowtype>
 		if (!i->is_sink)
 		{
 			/* grow source tree */
-			for (a=i->first; a; a=a->next)
+			int ai;
+			for (ai = 0; ai < i->narcs; ++ai) {
+			a = i->arcs + ai;
 			if (a->r_cap)
 			{
-				j = a -> head;
+				j = NODE_PTR(a -> head);
 				if (!j->parent)
 				{
 					j -> is_sink = 0;
-					j -> parent = a -> sister;
+					j -> parent = a -> sister(this);
 					j -> TS = i -> TS;
 					j -> DIST = i -> DIST + 1;
 					set_active(j);
@@ -421,36 +450,46 @@ template <typename captype, typename tcaptype, typename flowtype>
 				         j->DIST > i->DIST)
 				{
 					/* heuristic - trying to make the distance from j to the source shorter */
-					j -> parent = a -> sister;
+					j -> parent = a -> sister(this);
 					j -> TS = i -> TS;
 					j -> DIST = i -> DIST + 1;
 				}
+			}
+			}
+			if (ai == i->narcs) {
+				a = NULL;
 			}
 		}
 		else
 		{
 			/* grow sink tree */
-			for (a=i->first; a; a=a->next)
-			if (a->sister->r_cap)
+			int ai;
+			for (ai = 0; ai < i->narcs; ++ai) {
+			a = i->arcs + ai;
+			if (a->sister(this)->r_cap)
 			{
-				j = a -> head;
+				j = NODE_PTR(a -> head);
 				if (!j->parent)
 				{
 					j -> is_sink = 1;
-					j -> parent = a -> sister;
+					j -> parent = a -> sister(this);
 					j -> TS = i -> TS;
 					j -> DIST = i -> DIST + 1;
 					set_active(j);
 				}
-				else if (!j->is_sink) { a = a -> sister; break; }
+				else if (!j->is_sink) { a = a -> sister(this); break; }
 				else if (j->TS <= i->TS &&
 				         j->DIST > i->DIST)
 				{
 					/* heuristic - trying to make the distance from j to the sink shorter */
-					j -> parent = a -> sister;
+					j -> parent = a -> sister(this);
 					j -> TS = i -> TS;
 					j -> DIST = i -> DIST + 1;
 				}
+			}
+			}
+			if (ai == i->narcs) {
+				a = NULL;
 			}
 		}
 

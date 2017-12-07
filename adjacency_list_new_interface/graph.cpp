@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdexcept>
 #include "graph.h"
 
 template <typename captype, typename tcaptype, typename flowtype>
@@ -11,6 +12,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 {
 	error_function = err_function;
 	nodes = (node*) malloc(node_num_max*sizeof(node));
+	if (!nodes)
+		throw std::bad_alloc();
 	flow = 0;
 }
 

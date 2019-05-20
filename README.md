@@ -10,8 +10,11 @@ Original site - http://pub.ist.ac.at/~vnk/software.html (An Experimental Compari
 
 Site with commercial version - https://xip.uclb.com/i/software/maxflow_computervision.html
 
-# Original README.txt
+Another great solver (it is faster for MAX_ARCS_NUMBER >> 4, and more importantly it has strict asymptotic guarantees - so it can't suddenly stuck in some bad case, which happens sometimes with BK-solver) for min-cut problem is [IBFS](http://web.archive.org/web/20170703042834/http://www.cs.tau.ac.il/~sagihed/ibfs/) (see also [**fork**](https://github.com/PolarNick239/IBFS) with reduced memory consumption and floating point capacity support). But note that its license for non-research usage is **VERY high**.
 
+Original README.txt:
+
+```
 ###################################################################
 #                                                                 #
 #    MAXFLOW - software for computing mincut/maxflow in a graph   #
@@ -152,3 +155,4 @@ void main()
 }
 
 ///////////////////////////////////////////////////
+```
